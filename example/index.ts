@@ -8,7 +8,9 @@
 import https from 'https';
 import http from 'http';
 import fs from 'fs';
-
+import tls from 'tls';
+import cors from 'cors';
+import mailgun from 'mailgun-js';
 import express from 'express';
 import dotenv from 'dotenv';
 import base64url from 'base64url';
@@ -40,12 +42,26 @@ import type {
 
 import { LoggedInUser } from './example-server';
 
+const options = {
+  key: fs.readFileSync('cert/server.key'),
+  cert: fs.readFileSync('cert/server.cert'),
+//only needed for self-signed cert in dev
+ ca: [ fs.readFileSync('cert/server.pem') ]
+};
+
 const app = express();
 
 const { ENABLE_CONFORMANCE, ENABLE_HTTPS } = process.env;
 
 app.use(express.static('./public/'));
 app.use(express.json());
+//sb additions
+app.use(cors({
+  credentials: true,
+  origin: 'http://localhost:8000'
+}));
+app.disable('x-powered-by');
+
 
 /**
  * If the words "metadata statements" mean anything to you, you'll want to enable this route. It
@@ -197,6 +213,67 @@ app.post('/verify-registration', async (req, res) => {
 });
 
 /**
+ * Backend Sam's dummy handler
+ **/
+
+app.post('/ping', async (req, res) => {
+  let userSuppliedEmail =req.body.email;
+
+  //todo check nasty domains, ie hush mail, other disposable
+  // if nasty domain 'eh...sorry you can't use insecure email providers here, maybe you should try a real email :)'
+
+  if (userSuppliedEmail !== 'sbouso@gmail.com') {
+    res.send('{"ack": "new","action": "signup","dialog_1": "Hi, looks like you\'re new","smalltalk_1":"Please verify your email","btntxt": "verify email"}');
+  } else if (userSuppliedEmail === 'sbouso@gmail.com') {
+    res.send('{"ack": "new","action": "auth","dialog_1": "Is it really you?","smalltalk_1":"Sorry, I don\'t recognize this device","btntxt": "verify email"}');
+  } else
+  //  throw new Error(`Invalid State on User lookup: ${userSuppliedEmail}`);
+  res.send('{"ack":"error"}');
+});
+
+
+
+////Send email vars
+const DOMAIN = 'sandboxdde285df4f2d4cd2b7cba94b8e77d1a9.mailgun.org';
+const mg = mailgun({apiKey: 'a1671a7954789955ce3f188ec37bad6e-2ac825a1-c3da6d78', domain: DOMAIN});
+const data = {
+  from: 'Verify Email <info@authmosis.com>',
+  to: 'sbouso@gmail.com',
+  subject: 'Verify Your Email',
+  text: 'Testing some Mailgun awesomness!'
+};
+
+/**
+ *  Email link listener, can listen for ?key=magic_link_ID
+ *
+ *  it should get the link id and check that it exists and has not expired
+ *  redirect the user to a success page if good, else a link is no longer valid if expired, else invalid link
+ *
+ * **/
+app.get('/magic-link', function (req,res){
+  console.log(req);
+
+});
+
+app.post('/verify', function (req, res) {
+  console.log(req.body);
+
+  mg.messages().send(data, function (error, body) {
+    console.log(body);
+  });
+  res.send('{"ack": "verify","action": "signup","dialog_1": "Please check your email","smalltalk_1":"You can use any device to confirm","btntxt": "verify email"}');
+  //sendEmail(req.body.email, 'Acme Co');
+
+
+});
+
+
+
+
+
+
+
+/**
  * Login (a.k.a. "Authentication")
  */
 app.get('/generate-authentication-options', (req, res) => {
@@ -208,7 +285,7 @@ app.get('/generate-authentication-options', (req, res) => {
     allowCredentials: user.devices.map(dev => ({
       id: dev.credentialID,
       type: 'public-key',
-      transports: dev.transports ?? ['usb', 'ble', 'nfc', 'internal'],
+      transports: dev.transports ?? ['internal'],
     })),
     /**
      * This optional value controls whether or not the authenticator needs be able to uniquely

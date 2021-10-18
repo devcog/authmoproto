@@ -1,162 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.es5.umd.min.js"></script>
-    <link rel="stylesheet" href="./styles.css" />
-    <title>SimpleWebAuthn Example Site</title>
-  </head>
-  <body>
-    <div class="container">
-      <h1>SimpleWebAuthn Example Site</h1>
+<head>
+  <title>Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--=====================================CSS========================================================-->
+  <link rel="stylesheet" type="text/css" href="fonts/iconic/css/material-design-iconic-font.min.css">
+  <link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+        integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
 
-      <div class="controls">
-        <section id="registration">
-          <button id="btnRegBegin">
-            <strong>🚪&nbsp;Register</strong>
-          </button>
-          <p id="regSuccess" class="success"></p>
-          <p id="regError" class="error"></p>
-          <details open>
-            <summary>Console</summary>
-            <textarea id="regDebug" spellcheck="false"></textarea>
-          </details>
-        </section>
+  <!--===============================================================================================-->
+  <link rel="stylesheet" type="text/css" href="css/util.css">
+  <link rel="stylesheet" type="text/css" href="css/main.css">
+  <!--===============================================================================================-->
+  <script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.es5.umd.min.js"></script>
 
-        <section id="authentication">
-          <button id="btnAuthBegin">
-            <strong>🔐&nbsp;Authenticate</strong>
-          </button>
-          <p id="authSuccess" class="success"></p>
-          <p id="authError" class="error"></p>
-          <details open>
-            <summary>Console</summary>
-            <textarea id="authDebug" spellcheck="false"></textarea>
-          </details>
-        </section>
+</head>
+<body>
+
+<div id="spinner"></div>
+    <div class="authmosisContainer container-login100">  <!--container start-->
+<div class="wrap-login100" style="background-color: transparent;">
+  <form id="amo" class="login100-form">
+                <span class="login100-form-title p-b-26">
+                    Acme Company <!-- should be dynamic via config-->
+                </span>
+
+    <span class="login100-form-title p-b-32">
+                    <i class="zmdi zmdi-font"></i>
+                </span>
+
+    <div class="login p-t-24">
+      <div class="wrap-input100 validate-input email">
+        <input class="input100 email" id="email" type="text" autocomplete="off" spellcheck="false" name="email"
+               autofocus>
+        <span class="focus-input100" data-placeholder="Type Your Email Address"></span>
+        <svg viewBox="0 0 16 16">
+          <path
+            d="M10.8000002,10.8000002 C9.85000038,11.6500006 9.18349609,12 8,12 C5.80000019,12 4,10.1999998 4,8 C4,5.80000019 5.80000019,4 8,4 C10.1999998,4 12,6 12,8 C12,9.35332031 12.75,9.5 13.5,9.5 C14.25,9.5 15,8.60000038 15,8 C15,4 12,1 8,1 C4,1 1,4 1,8 C1,12 4,15 8,15 C12,15 15,12 15,8"></path>
+          <polyline points="5 8.375 7.59090909 11 14.5 4" transform='translate(0 -0.5)'></polyline>
+        </svg>
       </div>
-
-      <p class="systemError"></p>
     </div>
-    <script>
-      const { browserSupportsWebauthn, startRegistration, startAuthentication } = SimpleWebAuthnBrowser;
 
-      /**
-       * A simple way to control how debug content is written to a debug console element
-       */
-      function printDebug(elemDebug, title, output) {
-        if (elemDebug.innerHTML !== '') {
-          elemDebug.innerHTML += '\n';
-        }
-        elemDebug.innerHTML += `// ${title}\n`;
-        elemDebug.innerHTML += `${output}\n`;
-      }
 
-      // Hide the Begin button if the browser is incapable of using WebAuthn
-      if (!browserSupportsWebauthn()) {
-        document.querySelector('.controls').style.display = 'none';
-        document.querySelector('.systemError').innerText = "It seems this browser doesn't support WebAuthn...";
-      } else {
 
-        /**
-         * Registration
-         */
-        document.querySelector('#btnRegBegin').addEventListener('click', async () => {
-          const elemSuccess = document.querySelector('#regSuccess');
-          const elemError = document.querySelector('#regError');
-          const elemDebug = document.querySelector('#regDebug');
 
-          // Reset success/error messages
-          elemSuccess.innerHTML = '';
-          elemError.innerHTML = '';
-          elemDebug.innerHTML = '';
 
-          const resp = await fetch('/generate-registration-options');
 
-          let attResp;
-          try {
-            const opts = await resp.json();
-            printDebug(elemDebug, 'Registration Options', JSON.stringify(opts, null, 2));
-            attResp = await startRegistration(opts);
-            printDebug(elemDebug, 'Registration Response', JSON.stringify(attResp, null, 2));
-          } catch (error) {
-            if (error.name === 'InvalidStateError') {
-              elemError.innerText = 'Error: Authenticator was probably already registered by user';
-            } else {
-              elemError.innerText = error;
-            }
+    <!-- bottom msg space start -->
+    <div class="login100-form-talk-normal is_convo register" style="display: none">
+      <span id="dialog_1"></span>
+      <span class="login100-form-talk-smaller" id="smalltalk_1"> </span>
+      <div class="container-login100-form-btn">
+        <div class="wrap-login100-form-btn">
+          <div class="login100-form-bgbtn"></div>
+          <button class="login100-form-btn" id="verify_email_bnt" type="submit">
+            <!--Echo XHR response.btntxt-->
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- bottom msg space end -->
+    <!-- spinner-->
 
-            throw error;
-          }
+    <div class="loader" style="display: none">Loading...</div>
 
-          const verificationResp = await fetch('/verify-registration', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(attResp),
-          });
+    <!-- Default checked -->
+    <div class="custom-control custom-switch p-t-12">
+      <input type="checkbox" class="custom-control-input" id="customSwitch1" checked>
+      <label class="custom-control-label" for="customSwitch1">Use my device authenticator as the password</label>
+      <a href="https://consumer.authmosis.com" data-toggle="tooltip" title="One less password to remember, and better security for a modern web. Learn about Authmosis and the Webauthn W3C Standard">
+        <img src="img/authmosis.png" align="right" height="20px" width="20px"/>
+        <!-- should be in css - remove when done testing -->
+      </a>
+    </div>
+  </form>
+</div>
 
-          const verificationJSON = await verificationResp.json();
-          printDebug(elemDebug, 'Server Response', JSON.stringify(verificationJSON, null, 2));
+  </div>  <!--container end-->
+<!--=====================================================================================!>
+============================================================================================-->
+<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
+<script src="js/main.js"></script>
 
-          if (verificationJSON && verificationJSON.verified) {
-            elemSuccess.innerHTML = `Authenticator registered!`;
-          } else {
-            elemError.innerHTML = `Oh no, something went wrong! Response: <pre>${JSON.stringify(
-              verificationJSON,
-            )}</pre>`;
-          }
-        });
-
-         /**
-         * Authentication
-         */
-        document.querySelector('#btnAuthBegin').addEventListener('click', async () => {
-          const elemSuccess = document.querySelector('#authSuccess');
-          const elemError = document.querySelector('#authError');
-          const elemDebug = document.querySelector('#authDebug');
-
-          // Reset success/error messages
-          elemSuccess.innerHTML = '';
-          elemError.innerHTML = '';
-          elemDebug.innerHTML = '';
-
-          const resp = await fetch('/generate-authentication-options');
-
-          let asseResp;
-          try {
-            const opts = await resp.json();
-            printDebug(elemDebug, 'Authentication Options', JSON.stringify(opts, null, 2));
-            asseResp = await startAuthentication(opts);
-            printDebug(elemDebug, 'Authentication Response', JSON.stringify(asseResp, null, 2));
-          } catch (error) {
-            elemError.innerText = error;
-            throw new Error(error);
-          }
-
-          const verificationResp = await fetch('/verify-authentication', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(asseResp),
-          });
-
-          const verificationJSON = await verificationResp.json();
-          printDebug(elemDebug, 'Server Response', JSON.stringify(verificationJSON, null, 2));
-
-          if (verificationJSON && verificationJSON.verified) {
-            elemSuccess.innerHTML = `User authenticated!`;
-          } else {
-            elemError.innerHTML = `Oh no, something went wrong! Response: <pre>${JSON.stringify(
-              verificationJSON,
-            )}</pre>`;
-          }
-        });
-      }
-
-    </script>
-  </body>
+</body>
 </html>

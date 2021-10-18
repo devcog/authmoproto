@@ -43,10 +43,8 @@ import type {
 import { LoggedInUser } from './example-server';
 
 const options = {
-  key: fs.readFileSync('cert/server.key'),
-  cert: fs.readFileSync('cert/server.cert'),
-//only needed for self-signed cert in dev
- ca: [ fs.readFileSync('cert/server.pem') ]
+  key: fs.readFileSync(`./${rpID}.key`),
+  cert: fs.readFileSync(`./${rpID}.crt`)
 };
 
 const app = express();
